@@ -1,0 +1,141 @@
+install ethers, @web3-react, @ethersproject/providers
+
+web3-react comes with context(check their github) - these are ways to wrap all of your
+code in the provider that way all of the apps know about the state of the provider
+
+Wrap the component in _app.js inside the Web3ReactProvider
+    function MyApp({ Component, pageProps }) {
+        return (
+            <Web3ReactProvider getLibrary={getLibrary}>
+                <Component {...pageProps} />
+            </Web3ReactProvider>
+        );
+        }
+
+- import {Web3ReactProvider} from "@web3-react/core"; and
+  import {web3Provider} from "@ethersproject/providers"(just to get the provider not the entire ethers being imported)
+  in _app.js 
+  The reason we import just the provider is because the web3Provider needs this getLibrary fn in order to exist
+
+  const getLibrary = (provider) => {
+    return Web3Provider(provider);
+  }; - This is how we define how to get different providers with Web3React
+
+- Now inside index.js 
+    import ethers,
+    import { useWeb3React } from "@web3-react/core";
+
+    const { acive, library: provider } - useWeb3React(); - This is a hook
+      This has a field called library we're naming it as provider, also an active thing from useWeb3React so we 
+      can check to see if we are actively connected or not. We can use this hook across all different pages to 
+      always know if we are connected or not. This is what the value of wrapping the component in Web3ReactProvider. 
+      If we didnt wrap it then we would have to reconnect on every single page.
+
+    async function connect() {
+    try {
+      await activate(); - const { activate, acive, library: provider } = useWeb3React(); grab activate fn from Web3React
+    } catch (e) {
+      console.log(e);
+    }
+  }
+  we want to tell activate which provider we want to use[ie who is providing us access to blockchain] - since 
+  Web3React comes with many connectors, and different wallets have different kinds of connection. So we just 
+  import them if our app needs to supports these connectors.
+  
+  To import metamask connector - npm i @web3-react/injected-connector
+   - import {InjectedConnector} from "@web3-react/injected-connector"
+   Then declare the connector
+   - const injector = InjectedConnector();
+   Then tell activate() to use the injector provider
+
+- Now create the buttons
+   If we are active show connected and the execute button else show the connect button
+
+   execute fn
+    add abi to a different folder[constants > abi.js] and import it here 
+    import {abi} from "constants/abi"
+    module.exports = {
+      abi: [],
+    };
+
+    if(active) {
+      const signer = provider.getSigner(); - we can get the signer from the provider variable
+      const contractAddress = "aownefoa"
+      const contract = new ethers.Contract(contractAddress, abi, signer)
+    }
+
+Summary
+
+- Firstly install @web3-react/core , ethers
+- web3-react comes with context, these are ways to wrap all our code in this provider, that way all of our 
+  apps pages know about the state of the provider[ie is connected or not].
+  So 
+  import {Web3ReactProvider} from "@web3-react/core"
+    function MyApp({ Component, pageProps }) {
+        return (
+            <Web3ReactProvider getLibrary={getLibrary}>
+                <Component {...pageProps} />
+            </Web3ReactProvider>
+        );
+    }
+- install @ethersproject/providers and import {Web3Provider} from "@ethersproject/provider"
+    this is a minimalist version of ethers just to get the provider. 
+    Reason - Since the Web3Provider needs a getLibrary fn in order to exist 
+      const getLibrary = (provider) => {
+        return new Web3Provider(provider);
+      }; - This is how we define how to get different providers with Web3React
+    This fn returns us the provider aka metamask in this case.
+
+- now in index.js create a hook
+  import {useWeb3React} from "@web3-react/core"
+
+  const { acive, library: provider } - useWeb3React(); - This is a hook
+    library gives us the provider so we name it as provider
+    active shows us whether we are connected or not
+  We can use this hook accross different pages to always know if we are connected or not[since we wrapped the 
+  component inside Web3ReactProvider]
+
+- connect()
+  const { activate, acive, library: provider } = useWeb3React(); grab activate fn from Web3React
+   async function connect() {
+    try {
+      await activate(<name of provider>);  
+    } catch (e) {
+      console.log(e);
+    }
+  }
+  import the required connector into the app and give its name in activate();
+
+  metamask connector - npm install @web3-react/injected-connector
+  import {InjectedConnector} from "@web3-react/injected-connector" - import others if your app needs to support multiple wallets
+  and acitvate will select whichever one the user pressed
+
+  const injected = InjectedConnector();
+  async function connect() {
+    try {
+      await activate(injected); - we're gonna connect to metamask/injected provider
+    } catch (e) {
+      console.log(e);
+    }
+  }
+
+- execute()
+  import the abi to index.js from a file and access it from the code, import ethers as well 
+  if(active) {
+    const signer = provider.getSigner(); we get the signer from the provider 
+    contractAddress
+    contract = new ethers.Contract(contractAddress,abi, signer);
+  }
+
+- create buttons 
+  if (active) ie if we are connected, then show the execute button else show the connect button
+
+
+
+
+  
+   
+
+
+
+    
